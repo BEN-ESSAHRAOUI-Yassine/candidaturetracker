@@ -12,7 +12,7 @@ class StoreEntretienRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,10 @@ class StoreEntretienRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'type' => 'required|in:telephone,technique,rh,final',
+            'date_entretien' => 'required|date',
+            'notes_preparation' => 'nullable|string',
+            'resultat' => 'required|in:pending,positive,negative'
         ];
     }
 }

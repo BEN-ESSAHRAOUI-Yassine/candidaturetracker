@@ -12,7 +12,7 @@ class UpdateCandidatureRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -23,7 +23,13 @@ class UpdateCandidatureRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'entreprise' => 'required|string|max:255',
+            'poste' => 'required|string|max:255',
+            'offre_url' => 'nullable|url',
+            'statut' => 'required',
+            'priorite' => 'required',
+            'notes' => 'nullable|string',
+            'date_candidature' => 'required|date'
         ];
     }
 }
