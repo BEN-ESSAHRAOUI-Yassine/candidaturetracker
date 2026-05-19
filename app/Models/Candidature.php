@@ -35,4 +35,26 @@ class Candidature extends Model
     {
         return $this->hasMany(Document::class);
     }
+
+    public function getStatutLabelAttribute(): string
+    {
+        return match ($this->statut) {
+            'to_review' => 'En attente',
+            'interview_scheduled' => 'Entretien planifié',
+            'offer_received' => 'Offre reçue',
+            'rejected' => 'Refusé',
+            'abandoned' => 'Abandonné',
+            default => 'Inconnu'
+        };
+    }
+
+    public function getPrioriteLabelAttribute(): string
+    {
+        return match ($this->priorite) {
+            'high' => 'Haute',
+            'medium' => 'Moyenne',
+            'low' => 'Faible',
+            default => 'Inconnue'
+        };
+    }
 }
