@@ -22,6 +22,11 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
+
+    public function candidature()
+    {
+        return $this->hasMany(Candidature::class);
+    }
     protected function casts(): array
     {
         return [
@@ -29,6 +34,5 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
 
-        return $this->hasMany(Candidature::class);
     }
 }
