@@ -21,7 +21,7 @@ class CandidaturePolicy
      */
     public function view(User $user, Candidature $candidature): bool
     {
-        return false;
+        return $user->id === $candidature->user_id;
     }
 
     /**
@@ -37,7 +37,7 @@ class CandidaturePolicy
      */
     public function update(User $user, Candidature $candidature): bool
     {
-        return false;
+        return $user->id === $candidature->user_id;
     }
 
     /**
@@ -45,7 +45,7 @@ class CandidaturePolicy
      */
     public function delete(User $user, Candidature $candidature): bool
     {
-        return false;
+        return $user->id === $candidature->user_id;
     }
 
     /**
@@ -53,7 +53,7 @@ class CandidaturePolicy
      */
     public function restore(User $user, Candidature $candidature): bool
     {
-        return false;
+        return $user->id === $candidature->user_id;
     }
 
     /**
@@ -61,6 +61,6 @@ class CandidaturePolicy
      */
     public function forceDelete(User $user, Candidature $candidature): bool
     {
-        return false;
+        return $user->id === $candidature->user_id;
     }
 }

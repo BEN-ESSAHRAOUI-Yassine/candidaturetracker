@@ -21,7 +21,7 @@ class EntretienPolicy
      */
     public function view(User $user, Entretien $entretien): bool
     {
-        return false;
+        return $user->id === $entretien->candidature->user_id;
     }
 
     /**
@@ -37,7 +37,7 @@ class EntretienPolicy
      */
     public function update(User $user, Entretien $entretien): bool
     {
-        return false;
+        return $user->id === $entretien->candidature->user_id;
     }
 
     /**
@@ -45,7 +45,7 @@ class EntretienPolicy
      */
     public function delete(User $user, Entretien $entretien): bool
     {
-        return false;
+        return $user->id === $entretien->candidature->user_id;
     }
 
     /**
@@ -53,7 +53,7 @@ class EntretienPolicy
      */
     public function restore(User $user, Entretien $entretien): bool
     {
-        return false;
+        return $user->id === $entretien->candidature->user_id;
     }
 
     /**
@@ -61,6 +61,7 @@ class EntretienPolicy
      */
     public function forceDelete(User $user, Entretien $entretien): bool
     {
-        return false;
+        return $user->id === $entretien->candidature->user_id;
     }
 }
+
