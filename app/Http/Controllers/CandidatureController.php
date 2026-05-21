@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreCandidatureRequest;
 use App\Http\Requests\UpdateCandidatureRequest;
 use App\Models\Candidature;
+use App\Models\entretien;
+use App\Models\user;
 use Illuminate\Http\Request;
 
 class CandidatureController extends Controller
@@ -131,5 +133,44 @@ class CandidatureController extends Controller
         return redirect()
             ->route('candidatures.archives')
             ->with('success', 'Candidature restaurée.');
+    }
+
+    public function forceDestroy($id)
+    {
+        $candidature = Candidature::onlyTrashed()->findOrFail($id);
+        $this->authorize('forceDelete', $candidature);
+        $candidature->forceDelete();
+        return redirect()
+            ->route('candidatures.archives')
+            ->with('success', 'Candidature supprimée définitivement.');
+    }
+
+    public function dashboardStats()
+    {
+        $user = auth()->user();
+        $totalCandidatures = $user->candidatures()->count();
+        $enAttente = $user->candidatures()->where('statut', 'to_review')->count();
+        $entretiensPlanifies = $user->candidatures()->where('statut', 'interview_scheduled')->count();
+        $offresRecues = $user->candidatures()->where('statut', 'offer_received')->count();
+        $refusees = $user->candidatures()->where('statut', 'rejected')->count();
+        $statistiquesParStatut = $user->candidatures()
+            ->selectRaw('statut, count(*) as total')
+            ->groupBy('statut')
+            ->pluck('total', 'statut');
+        $candidaturesRecent = $user->candidatures()
+            ->latest()
+            ->take(5)
+            ->get();
+        $prochainsEntretiens = Entretien::whereHas('candidature', fn($q) => $q->where('user_id', $user->id))
+            ->where('date_entretien', '>=', now())
+            ->with('candidature')
+            ->orderBy('date_entretien')
+            ->take(5)
+            ->get();
+        return view('dashboard', compact(
+            'totalCandidatures', 'enAttente', 'entretiensPlanifies',
+            'offresRecues', 'refusees', 'statistiquesParStatut',
+            'candidaturesRecent', 'prochainsEntretiens'
+        ));
     }
 }
