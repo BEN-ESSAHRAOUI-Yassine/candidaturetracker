@@ -17,7 +17,7 @@ class Document extends Model
         'type_mime'
     ];
 
-    public function candidature()
+    public function candidatures()
     {
         return $this->belongsTo(Candidature::class);
     }

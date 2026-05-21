@@ -21,7 +21,7 @@ class Candidature extends Model
         'date_candidature'
     ];
 
-    public function user()
+    public function users()
     {
         return $this->belongsTo(User::class);
     }

@@ -10,9 +10,13 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/dashboard', [CandidatureController::class, 'dashboardStats'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -27,6 +31,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/candidatures/{candidature}',[CandidatureController::class, 'destroy'])->name('candidatures.destroy');
     Route::get('/archives',[CandidatureController::class, 'archives'])->name('candidatures.archives');
     Route::patch('/candidatures/{id}/restore',[CandidatureController::class, 'restore'])->name('candidatures.restore');
+    Route::delete('/candidatures/{id}/force-delete', [CandidatureController::class, 'forceDestroy'])->name('candidatures.force-destroy');
     Route::post('/candidatures/{candidature}/entretiens',[EntretienController::class,'store'])->name('entretiens.store');
     Route::get('/entretiens/{entretien}/edit',[EntretienController::class, 'edit'])->name('entretiens.edit');
     Route::put('/entretiens/{entretien}',[EntretienController::class, 'update'])->name('entretiens.update');
