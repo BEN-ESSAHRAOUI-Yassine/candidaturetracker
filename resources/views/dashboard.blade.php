@@ -1,175 +1,222 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Dashboard') }}
-        </h2>
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-neon-green animate-pulse-glow"></span>
+                    <span class="font-mono text-xs text-neon-green uppercase tracking-wider">Système opérationnel</span>
+                </div>
+                <span class="text-text-dim">|</span>
+                <span class="font-mono text-xs text-text-dim" id="live-clock"></span>
+            </div>
+            <a href="{{ route('candidatures.create') }}"
+               class="inline-flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-lg font-mono text-xs text-neon-cyan uppercase tracking-wider hover:bg-neon-cyan/20 hover:border-neon-cyan/50 shadow-glow-sm transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                Nouvelle candidature
+            </a>
+        </div>
     </x-slot>
 
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <a href="{{ route('candidatures.index') }}" class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-3xl font-bold text-gray-900">{{ $totalCandidatures }}</p>
-                            <p class="text-sm text-gray-500">Total candidatures</p>
-                        </div>
-                    </div>
-                </a>
+    <div class="space-y-6">
+        @php
+            $gaugeMax = max($totalCandidatures, 1);
+            $gaugeData = [
+                ['value' => $totalCandidatures, 'max' => $gaugeMax, 'label' => 'Total candidatures', 'color' => '#00d4ff', 'href' => route('candidatures.index')],
+                ['value' => $enAttente, 'max' => $gaugeMax, 'label' => 'En attente', 'color' => '#eab308', 'href' => route('candidatures.index', ['statut' => 'to_review'])],
+                ['value' => $entretiensPlanifies, 'max' => $gaugeMax, 'label' => 'Entretiens', 'color' => '#00d4ff', 'href' => route('candidatures.index', ['statut' => 'interview_scheduled'])],
+                ['value' => $offresRecues, 'max' => $gaugeMax, 'label' => 'Offres reçues', 'color' => '#00e676', 'href' => route('candidatures.index', ['statut' => 'offer_received'])],
+            ];
+            $radius = 36;
+            $circumference = 2 * pi() * $radius;
+        @endphp
 
-                <a href="{{ route('candidatures.index', ['statut' => 'to_review']) }}" class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow">
+        <!-- Gauge Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            @foreach ($gaugeData as $i => $g)
+                @php
+                    $pct = $g['value'] / $g['max'];
+                    $offset = $circumference - ($pct * $circumference);
+                @endphp
+                <a href="{{ $g['href'] }}"
+                   class="glass rounded-2xl p-5 glass-hover animate-fade-up animate-fade-up-d{{ $i + 1 }} group">
                     <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center shrink-0">
-                            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        <div class="relative shrink-0">
+                            <svg class="w-20 h-20 gauge-ring" viewBox="0 0 84 84">
+                                <circle cx="42" cy="42" r="{{ $radius }}"
+                                        stroke="rgba(255,255,255,0.04)" stroke-width="5"/>
+                                <circle cx="42" cy="42" r="{{ $radius }}"
+                                        stroke="{{ $g['color'] }}" stroke-width="5"
+                                        stroke-dasharray="{{ $circumference }}"
+                                        stroke-dashoffset="{{ $circumference }}"
+                                        style="--target: {{ $offset }};"
+                                        class="animate-ring"/>
                             </svg>
+                            <div class="absolute inset-0 flex items-center justify-center">
+                                <span class="font-mono text-xl font-bold" style="color: {{ $g['color'] }}">{{ $g['value'] }}</span>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-3xl font-bold text-gray-900">{{ $enAttente }}</p>
-                            <p class="text-sm text-gray-500">En attente</p>
+                        <div class="min-w-0">
+                            <p class="font-mono text-xs text-text-muted group-hover:text-text-primary transition-colors">{{ $g['label'] }}</p>
+                            <p class="font-mono text-[10px] text-text-dim mt-0.5">
+                                {{ $g['max'] > 0 ? round($pct * 100) : 0 }}% du total
+                            </p>
                         </div>
                     </div>
                 </a>
+            @endforeach
+        </div>
 
-                <a href="{{ route('candidatures.index', ['statut' => 'interview_scheduled']) }}" class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
+        <!-- Middle: Status Radar + Recent Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Status Distribution -->
+            <div class="lg:col-span-2 glass rounded-2xl p-6 animate-fade-up animate-fade-up-d5">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="font-mono text-xs text-text-muted uppercase tracking-widest">Répartition par statut</h3>
+                    <span class="font-mono text-[10px] text-text-dim">{{ $totalCandidatures }} au total</span>
+                </div>
+                @php
+                    $statutLabels = [
+                        'to_review' => 'En attente',
+                        'interview_scheduled' => 'Entretien planifié',
+                        'offer_received' => 'Offre reçue',
+                        'rejected' => 'Refusé',
+                        'abandoned' => 'Abandonné',
+                    ];
+                    $statutColors = [
+                        'to_review' => ['dot' => 'bg-yellow-400', 'bar' => 'bg-yellow-400', 'text' => 'text-yellow-400'],
+                        'interview_scheduled' => ['dot' => 'bg-neon-cyan', 'bar' => 'bg-neon-cyan', 'text' => 'text-neon-cyan'],
+                        'offer_received' => ['dot' => 'bg-neon-green', 'bar' => 'bg-neon-green', 'text' => 'text-neon-green'],
+                        'rejected' => ['dot' => 'bg-red-400', 'bar' => 'bg-red-400', 'text' => 'text-red-400'],
+                        'abandoned' => ['dot' => 'bg-gray-500', 'bar' => 'bg-gray-500', 'text' => 'text-gray-400'],
+                    ];
+                    $total = max($totalCandidatures, 1);
+                @endphp
+                <div class="space-y-3">
+                    @foreach ($statutLabels as $key => $label)
+                        @php $count = $statistiquesParStatut->get($key, 0); @endphp
                         <div>
-                            <p class="text-3xl font-bold text-gray-900">{{ $entretiensPlanifies }}</p>
-                            <p class="text-sm text-gray-500">Entretiens planifiés</p>
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="flex items-center gap-2 font-mono text-xs text-text-muted">
+                                    <span class="status-dot {{ $statutColors[$key]['dot'] }}"></span>
+                                    {{ $label }}
+                                </span>
+                                <span class="flex items-center gap-2">
+                                    <span class="font-mono text-xs text-text-primary">{{ $count }}</span>
+                                    <span class="font-mono text-[10px] text-text-dim w-8 text-right">{{ round(($count / $total) * 100) }}%</span>
+                                </span>
+                            </div>
+                            <div class="w-full bg-dark-elevated rounded-full h-2 overflow-hidden">
+                                <div class="{{ $statutColors[$key]['bar'] }} h-2 rounded-full transition-all duration-1000"
+                                     style="width: {{ ($count / $total) * 100 }}%"></div>
+                            </div>
                         </div>
-                    </div>
-                </a>
-
-                <a href="{{ route('candidatures.index', ['statut' => 'offer_received']) }}" class="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-shadow">
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center shrink-0">
-                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                            </svg>
-                        </div>
-                        <div>
-                            <p class="text-3xl font-bold text-gray-900">{{ $offresRecues }}</p>
-                            <p class="text-sm text-gray-500">Offres reçues</p>
-                        </div>
-                    </div>
-                </a>
+                    @endforeach
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Répartition par statut</h3>
-                    @php
-                        $statutLabels = [
-                            'to_review' => 'En attente',
-                            'interview_scheduled' => 'Entretien planifié',
-                            'offer_received' => 'Offre reçue',
-                            'rejected' => 'Refusé',
-                            'abandoned' => 'Abandonné',
-                        ];
-                        $statutColors = [
-                            'to_review' => 'bg-yellow-100 text-yellow-800',
-                            'interview_scheduled' => 'bg-blue-100 text-blue-800',
-                            'offer_received' => 'bg-green-100 text-green-800',
-                            'rejected' => 'bg-red-100 text-red-800',
-                            'abandoned' => 'bg-gray-100 text-gray-800',
-                        ];
-                        $statutBarColors = [
-                            'to_review' => 'bg-yellow-400',
-                            'interview_scheduled' => 'bg-blue-400',
-                            'offer_received' => 'bg-green-400',
-                            'rejected' => 'bg-red-400',
-                            'abandoned' => 'bg-gray-400',
-                        ];
-                        $maxStatut = max($statistiquesParStatut->toArray() ?: [1]);
-                    @endphp
-                    <div class="space-y-3">
-                        @foreach ($statutLabels as $key => $label)
-                            @php $count = $statistiquesParStatut->get($key, 0); @endphp
-                            <div>
-                                <div class="flex items-center justify-between text-sm mb-1">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {{ $statutColors[$key] }}">
-                                        {{ $label }}
-                                    </span>
-                                    <span class="font-medium text-gray-700">{{ $count }}</span>
-                                </div>
-                                <div class="w-full bg-gray-100 rounded-full h-2">
-                                    <div class="{{ $statutBarColors[$key] }} h-2 rounded-full transition-all" style="width: {{ $maxStatut > 0 ? ($count / $maxStatut) * 100 : 0 }}%"></div>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
+            <!-- Recent Activity -->
+            <div class="glass rounded-2xl p-6 animate-fade-up animate-fade-up-d5">
+                <div class="flex items-center justify-between mb-5">
+                    <h3 class="font-mono text-xs text-text-muted uppercase tracking-widest">Activité récente</h3>
+                    <a href="{{ route('candidatures.index') }}" class="font-mono text-[10px] text-neon-cyan hover:text-neon-cyan/80 transition">Voir tout</a>
                 </div>
-
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Dernières candidatures</h3>
-                        <a href="{{ route('candidatures.index') }}" class="text-sm text-blue-600 hover:text-blue-800">Voir tout</a>
-                    </div>
+                <div class="space-y-0">
                     @forelse ($candidaturesRecent as $candidature)
-                        <a href="{{ route('candidatures.show', $candidature) }}" class="flex items-center justify-between py-3 {{ !$loop->last ? 'border-b border-gray-100' : '' }} hover:bg-gray-50 -mx-2 px-2 rounded-lg transition">
-                            <div class="min-w-0 flex-1">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ $candidature->entreprise }}</p>
-                                <p class="text-xs text-gray-500 truncate">{{ $candidature->poste }}</p>
+                        @php
+                            $daysAgo = now()->diffInDays($candidature->created_at);
+                            $timeAgo = $daysAgo == 0 ? "Aujourd'hui" : ($daysAgo == 1 ? 'Hier' : "Il y a {$daysAgo}j");
+                        @endphp
+                        <a href="{{ route('candidatures.show', $candidature) }}" class="flex items-start gap-3 py-3 {{ !$loop->last ? 'border-b border-dark-border' : '' }} group">
+                            <div class="relative mt-1">
+                                <span class="status-dot block
+                                    @switch($candidature->statut)
+                                        @case('to_review') bg-yellow-400 @break
+                                        @case('interview_scheduled') bg-neon-cyan @break
+                                        @case('offer_received') bg-neon-green @break
+                                        @case('rejected') bg-red-400 @break
+                                        @case('abandoned') bg-gray-400 @break
+                                    @endswitch
+                                "></span>
                             </div>
-                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium shrink-0 ml-2
-                                @switch($candidature->statut)
-                                    @case('to_review') bg-yellow-100 text-yellow-800 @break
-                                    @case('interview_scheduled') bg-blue-100 text-blue-800 @break
-                                    @case('offer_received') bg-green-100 text-green-800 @break
-                                    @case('rejected') bg-red-100 text-red-800 @break
-                                    @case('abandoned') bg-gray-100 text-gray-800 @break
-                                @endswitch
-                            ">
-                                {{ $candidature->statut_label }}
-                            </span>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-mono text-sm text-text-primary group-hover:text-neon-cyan transition-colors truncate">{{ $candidature->entreprise }}</p>
+                                <p class="font-mono text-xs text-text-muted truncate">{{ $candidature->poste }}</p>
+                            </div>
+                            <span class="font-mono text-[10px] text-text-dim shrink-0 mt-0.5">{{ $timeAgo }}</span>
                         </a>
                     @empty
-                        <p class="text-sm text-gray-500 text-center py-6">Aucune candidature pour le moment.</p>
+                        <p class="font-mono text-xs text-text-muted text-center py-8">Aucune activité</p>
                     @endforelse
                 </div>
             </div>
+        </div>
 
-            <div class="bg-white rounded-xl shadow-md p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Prochains entretiens</h3>
-                @forelse ($prochainsEntretiens as $entretien)
-                    <div class="flex items-center justify-between py-3 {{ !$loop->last ? 'border-b border-gray-100' : '' }}">
-                        <div class="flex items-center gap-3 min-w-0 flex-1">
-                            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                                <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <div class="min-w-0">
-                                <p class="text-sm font-medium text-gray-900 truncate">{{ $entretien->candidature->entreprise }}</p>
-                                <p class="text-xs text-gray-500">
-                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium
-                                        @switch($entretien->type)
-                                            @case('telephone') bg-blue-100 text-blue-800 @break
-                                            @case('technique') bg-purple-100 text-purple-800 @break
-                                            @case('rh') bg-green-100 text-green-800 @break
-                                            @case('final') bg-orange-100 text-orange-800 @break
-                                        @endswitch
-                                    ">{{ $entretien->type_label }}</span>
-                                    {{ \Carbon\Carbon::parse($entretien->date_entretien)->format('d/m/Y H:i') }}
-                                </p>
-                            </div>
-                        </div>
-                        <a href="{{ route('candidatures.show', $entretien->candidature) }}" class="text-sm text-blue-600 hover:text-blue-800 shrink-0 ml-2">Voir</a>
-                    </div>
-                @empty
-                    <p class="text-sm text-gray-500 text-center py-6">Aucun entretien à venir.</p>
-                @endforelse
+        <!-- Upcoming Interviews with Countdown -->
+        <div class="glass rounded-2xl p-6 animate-fade-up animate-fade-up-d6">
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-3">
+                    <h3 class="font-mono text-xs text-text-muted uppercase tracking-widest">Prochains entretiens</h3>
+                    <span class="font-mono text-[10px] text-text-dim bg-dark-elevated px-2 py-0.5 rounded">{{ $prochainsEntretiens->count() }} planifiés</span>
+                </div>
             </div>
+
+            @forelse ($prochainsEntretiens as $entretien)
+                @php
+                    $date = \Carbon\Carbon::parse($entretien->date_entretien);
+                    $now = now();
+                    $diffDays = $now->diffInDays($date, false);
+                    $diffHours = $now->diffInHours($date, false);
+                    $isPast = $diffDays < 0;
+                    $countdownText = $isPast ? 'Passé' : ($diffDays > 0 ? "J-{$diffDays}" : ($diffHours > 0 ? "Dans {$diffHours}h" : "Aujourd'hui"));
+                    $urgencyClass = $isPast ? 'bg-gray-500/10 text-gray-400' : ($diffDays <= 2 && !$isPast ? 'bg-neon-orange/10 text-neon-orange' : 'bg-neon-cyan/10 text-neon-cyan');
+                @endphp
+                <div class="flex items-center gap-4 py-4 {{ !$loop->last ? 'border-b border-dark-border' : '' }}">
+                    <div class="relative flex flex-col items-center">
+                        <span class="w-3 h-3 rounded-full {{ $isPast ? 'bg-gray-500' : 'bg-neon-cyan' }} {{ $isPast ? '' : 'animate-pulse-glow' }}"></span>
+                        @if (!$loop->last)
+                            <div class="w-px flex-1 bg-dark-border mt-1"></div>
+                        @endif
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="font-mono text-sm font-medium text-text-primary">{{ $entretien->candidature->entreprise }}</span>
+                            <span class="font-mono text-xs text-neon-cyan bg-neon-cyan/5 px-2 py-0.5 rounded
+                                @switch($entretien->type)
+                                    @case('telephone') text-neon-cyan bg-neon-cyan/5 @break
+                                    @case('technique') text-purple-400 bg-purple-500/10 @break
+                                    @case('rh') text-neon-green bg-neon-green/5 @break
+                                    @case('final') text-neon-orange bg-neon-orange/5 @break
+                                @endswitch
+                            ">{{ $entretien->type_label }}</span>
+                        </div>
+                        <p class="font-mono text-xs text-text-muted mt-0.5">{{ $entretien->candidature->poste }}</p>
+                        <p class="font-mono text-[10px] text-text-dim mt-0.5">{{ $date->format('d/m/Y H:i') }}</p>
+                    </div>
+                    <div class="shrink-0 text-right">
+                        <span class="countdown-badge {{ $urgencyClass }}">{{ $countdownText }}</span>
+                        <br>
+                        <a href="{{ route('candidatures.show', $entretien->candidature) }}" class="font-mono text-[10px] text-neon-cyan hover:text-neon-cyan/80 transition mt-1 inline-block">Voir →</a>
+                    </div>
+                </div>
+            @empty
+                <p class="font-mono text-xs text-text-muted text-center py-8">Aucun entretien à venir.</p>
+            @endforelse
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        function updateClock() {
+            const now = new Date();
+            const str = now.toLocaleDateString('fr-FR', { weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' })
+                + ' ' + now.toLocaleTimeString('fr-FR');
+            const el = document.getElementById('live-clock');
+            if (el) el.textContent = str;
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+    @endpush
 </x-app-layout>

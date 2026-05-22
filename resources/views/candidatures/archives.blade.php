@@ -1,82 +1,97 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Candidatures archivées') }}
-        </h2>
-    </x-slot>
-
-    <div class="py-6">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="space-y-4">
-                @forelse ($candidatures as $candidature)
-                    <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-3 flex-wrap">
-                                    <h3 class="text-lg font-semibold text-gray-900 truncate">
-                                        {{ $candidature->entreprise }}
-                                    </h3>
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                                        @switch($candidature->statut)
-                                            @case('to_review') bg-yellow-100 text-yellow-800 @break
-                                            @case('interview_scheduled') bg-blue-100 text-blue-800 @break
-                                            @case('offer_received') bg-green-100 text-green-800 @break
-                                            @case('rejected') bg-red-100 text-red-800 @break
-                                            @case('abandoned') bg-gray-100 text-gray-800 @break
-                                        @endswitch
-                                    ">
-                                        {{ $candidature->statut_label }}
-                                    </span>
-                                </div>
-                                <p class="mt-1 text-sm text-gray-500">
-                                    {{ $candidature->poste }}
-                                </p>
-                                <p class="text-xs text-gray-400 mt-1">
-                                    Archivée le — {{ $candidature->deleted_at ? \Carbon\Carbon::parse($candidature->deleted_at)->format('d/m/Y') : 'N/A' }}
-                                </p>
-                            </div>
-                            <div class="shrink-0 flex items-center gap-2">
-                                <form action="{{ route('candidatures.restore', $candidature->id) }}" method="POST" onsubmit="return confirm('Restaurer cette candidature ?');" class="inline">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                        </svg>
-                                        Restaurer
-                                    </button>
-                                </form>
-                                <form action="{{ route('candidatures.force-destroy', $candidature->id) }}" method="POST" onsubmit="return confirm('Supprimer définitivement cette candidature ? Cette action est irréversible.');" class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-red-600 border border-transparent rounded-lg font-semibold text-xs text-white uppercase tracking-widest hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition ease-in-out duration-150">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                        </svg>
-                                        Supprimer définitivement
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                @empty
-                    <div class="bg-white rounded-xl shadow-md p-12 text-center">
-                        <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                        </svg>
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Aucune candidature archivée</h3>
-                        <p class="text-gray-500">Les candidatures que vous archivez apparaîtront ici.</p>
-                    </div>
-                @endforelse
-            </div>
-
-            <div class="mt-6 text-center">
-                <a href="{{ route('candidatures.index') }}" class="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 transition">
-                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="{{ route('candidatures.index') }}" class="text-text-muted hover:text-neon-cyan transition p-1 -ml-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                     </svg>
-                    Retour à la liste
                 </a>
+                <h2 class="font-mono font-bold text-lg text-text-primary">Archives</h2>
+                <span class="font-mono text-[10px] text-text-dim bg-dark-elevated px-2 py-0.5 rounded border border-dark-border">{{ $candidatures->count() }} entrée(s)</span>
+            </div>
+        </div>
+    </x-slot>
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Terminal Header -->
+        <div class="glass rounded-t-2xl border-b border-dark-border px-5 py-3 flex items-center gap-3">
+            <div class="flex gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-red-400/50"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-yellow-400/50"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-neon-green/50"></span>
+            </div>
+            <span class="font-mono text-[10px] text-text-dim">archives@tracker:~$</span>
+            <span class="font-mono text-[10px] text-neon-cyan animate-typing max-w-[200px]">ls -la --archived</span>
+        </div>
+
+        <div class="glass rounded-b-2xl rounded-t-none p-5 font-mono text-sm space-y-0">
+            @forelse ($candidatures as $candidature)
+                @php
+                    $pct = $candidature->priorite === 'high' ? '!' : ($candidature->priorite === 'medium' ? '!' : '');
+                    $statusChar = match($candidature->statut) {
+                        'to_review' => '?',
+                        'interview_scheduled' => '>',
+                        'offer_received' => '+',
+                        'rejected' => '-',
+                        'abandoned' => 'x',
+                    };
+                @endphp
+                <div class="flex items-start gap-3 py-2.5 border-b border-dark-border last:border-0 group hover:bg-dark-elevated/30 px-2 -mx-2 rounded transition">
+                    <span class="text-text-dim shrink-0 font-mono text-[10px] mt-0.5">
+                        {{ $candidature->deleted_at ? \Carbon\Carbon::parse($candidature->deleted_at)->format('d/m') : '--/--' }}
+                    </span>
+                    <span class="text-text-dim shrink-0 font-mono">[{{ $statusChar }}]</span>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-neon-cyan font-semibold">{{ $candidature->entreprise }}</span>
+                        <span class="text-text-dim"> — </span>
+                        <span class="text-text-muted">{{ $candidature->poste }}</span>
+                    </div>
+                    <span class="font-mono text-[10px] px-1.5 py-0.5 rounded shrink-0
+                        @switch($candidature->statut)
+                            @case('to_review') text-yellow-400 bg-yellow-400/5 @break
+                            @case('interview_scheduled') text-neon-cyan bg-neon-cyan/5 @break
+                            @case('offer_received') text-neon-green bg-neon-green/5 @break
+                            @case('rejected') text-red-400 bg-red-400/5 @break
+                            @case('abandoned') text-gray-400 bg-gray-400/5 @break
+                        @endswitch
+                    ">{{ $candidature->statut_label }}</span>
+                    <div class="flex items-center gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity ml-2">
+                        @can('update', $candidature)
+                            <form action="{{ route('candidatures.restore', $candidature->id) }}" method="POST" onsubmit="return confirm('Restaurer cette candidature ?');" class="inline">
+                                @csrf
+                                @method('PATCH')
+                                <button type="submit" class="px-2 py-1 rounded bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan hover:bg-neon-cyan/20 text-[10px] font-mono transition">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                </button>
+                            </form>
+                        @endcan
+                        @can('forceDelete', $candidature)
+                            <form action="{{ route('candidatures.force-destroy', $candidature->id) }}" method="POST" onsubmit="return confirm('Supprimer définitivement ? Cette action est irréversible.');" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="px-2 py-1 rounded bg-neon-orange/10 border border-neon-orange/30 text-neon-orange hover:bg-neon-orange/20 text-[10px] font-mono transition">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                </button>
+                            </form>
+                        @endcan
+                    </div>
+                </div>
+            @empty
+                <div class="text-center py-8">
+                    <div class="text-text-dim font-mono text-xs mb-2">[INFO] Aucune candidature archivée</div>
+                    <div class="text-text-dim font-mono text-xs">Les candidatures supprimées apparaîtront ici.</div>
+                </div>
+            @endforelse
+
+            <div class="pt-3 mt-2 border-t border-dark-border flex items-center gap-2 text-[10px] text-text-dim font-mono">
+                <span class="text-neon-green">●</span>
+                <span>{{ $candidatures->count() }} entrée(s) ·</span>
+                <span>[?] En attente · [>] Entretien · [+] Offre · [-] Refusé · [x] Abandonné</span>
             </div>
         </div>
     </div>
